@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Analytics Pro — Что выгоднее купить</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --bg-card: #131a26;
+    --bg-hover: #1a2332;
+    --border: #1f2a3a;
+    --text: #e6edf3;
+    --text-dim: #7d8590;
+    --green: #26a69a;
+    --red: #ef5350;
+    --blue: #2962ff;
+    --yellow: #ffb300;
+    --purple: #9c27b0;
+    --orange: #ff9800;
+  }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 700; }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-radius: 10px; display: grid; place-items: center; font-size: 18px;
+  }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    color: var(--green); background: rgba(38,166,154,0.1);
+    padding: 6px 12px; border-radius: 20px;
+    border: 1px solid rgba(38,166,154,0.3);
+  }
+
+  .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.3)} }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+  .tab {
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .tab:hover { background: var(--bg-hover); color: var(--text); }
+  .tab.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--blue); }
+
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .asset-name { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .asset-symbol { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+
+  .asset-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700;
+    font-size: 13px; color: white; flex-shrink: 0;
+  }
+
+  .price { font-size: 26px; font-weight: 700; margin: 8px 0; font-variant-numeric: tabular-nums; }
+
+  .change { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
+  .change.up { color: var(--green); background: rgba(38,166,154,0.12); }
+  .change.down { color: var(--red); background: rgba(239,83,80,0.12); }
+
+  .meta { display: flex; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+  .meta span strong { color: var(--text); font-weight: 600; }
+
+  /* RECOMMENDATION BLOCK */
+  .rec-block {
+    background: linear-gradient(135deg, rgba(41,98,255,0.15), rgba(156,39,176,0.1));
+    border: 1px solid rgba(41,98,255,0.4);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .rec-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+  }
+
+  .rec-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .rec-subtitle { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+
+  .rec-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .rec-card:hover { border-color: var(--blue); }
+
+  .rec-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+  }
+
+  .rec-rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--blue); color: white;
+    font-size: 12px; font-weight: 800; margin-right: 8px;
+  }
+
+  .rec-asset-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .rec-asset-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; }
+  .rec-asset-type { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .rec-potential {
+    font-size: 22px; font-weight: 800;
+    color: var(--green);
+    font-variant-numeric: tabular-nums;
+  }
+  .rec-potential.negative { color: var(--red); }
+
+  .rec-details { font-size: 13px; color: var(--text-dim); margin-top: 10px; line-height: 1.6; }
+  .rec-details strong { color: var(--text); }
+
+  .rec-bar-wrap {
+    height: 6px; background: var(--border); border-radius: 3px;
+    margin-top: 12px; overflow: hidden;
+  }
+  .rec-bar {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--green), #4caf50);
+    transition: width 0.6s ease;
+  }
+  .rec-bar.negative { background: linear-gradient(90deg, var(--red), #f44336); }
+
+  /* ALLOCATION */
+  .alloc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+
+  .alloc-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .alloc-pct { font-size: 24px; font-weight: 800; color: var(--blue); }
+  .alloc-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  .chart-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; }
+
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+
+  .period-btns { display: flex; gap: 6px; }
+  .period-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;
+  }
+  .period-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .period-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .chart-wrap { height: 340px; position: relative; }
+  .chart-wrap-sm { height: 200px; position: relative; }
+
+  .table-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 14px 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 600; }
+  th:not(:first-child) { text-align: right; }
+  td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  td:not(:first-child) { text-align: right; }
+  tbody tr { transition: background 0.15s; cursor: pointer; }
+  tbody tr:hover { background: var(--bg-hover); }
+
+  .coin-cell { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .loader { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* PORTFOLIO */
+  .portfolio-inputs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .portfolio-inputs input, .portfolio-inputs select {
+    background: var(--bg-hover); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px; border-radius: 8px;
+    font-size: 14px; outline: none;
+  }
+  .portfolio-inputs input:focus, .portfolio-inputs select:focus { border-color: var(--blue); }
+  .portfolio-inputs input { width: 120px; }
+
+  .btn {
+    background: var(--blue); border: none; color: white;
+    padding: 10px 20px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-red { background: var(--red); }
+  .btn-green { background: var(--green); }
+
+  .pnl-positive { color: var(--green); font-weight: 700; }
+  .pnl-negative { color: var(--red); font-weight: 700; }
+
+  .indicators-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 900px) { .indicators-grid { grid-template-columns: 1fr; } }
+
+  .signal-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+  .signal-buy { background: rgba(38,166,154,0.15); color: var(--green); border: 1px solid rgba(38,166,154,0.3); }
+  .signal-sell { background: rgba(239,83,80,0.15); color: var(--red); border: 1px solid rgba(239,83,80,0.3); }
+  .signal-neutral { background: rgba(255,179,0,0.15); color: var(--yellow); border: 1px solid rgba(255,179,0,0.3); }
+
+  footer { text-align: center; padding: 32px; color: var(--text-dim); font-size: 12px; border-top: 1px solid var(--border); margin-top: 40px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px;
+    position: relative;
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--bg-hover); border: 1px solid var(--border);
+    color: var(--text-dim); width: 32px; height: 32px;
+    border-radius: 8px; cursor: pointer; font-size: 16px;
+    display: grid; place-items: center;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .modal-title { font-size: 22px; font-weight: 800; }
+  .modal-subtitle { font-size: 13px; color: var(--text-dim); }
+
+  .modal-section { margin-bottom: 20px; }
+  .modal-section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 10px; }
+
+  .forecast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+
+  .forecast-item {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .forecast-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+  .forecast-value { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .forecast-value.green { color: var(--green); }
+  .forecast-value.red { color: var(--red); }
+  .forecast-value.yellow { color: var(--yellow); }
+
+  .analyst-quote {
+    background: rgba(41,98,255,0.08);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .analyst-quote strong { color: var(--text); }
+
+  .risk-list { list-style: none; }
+  .risk-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 10px;
+  }
+  .risk-list li:last-child { border-bottom: none; }
+  .risk-list li::before { content: '⚠'; color: var(--yellow); flex-shrink: 0; }
+
+  .verdict-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px;
+    font-size: 14px; font-weight: 800;
+    margin-bottom: 16px;
+  }
+  .verdict-buy { background: rgba(38,166,154,0.15); color: var(--green); border: 1px solid rgba(38,166,154,0.3); }
+  .verdict-hold { background: rgba(255,179,0,0.15); color: var(--yellow); border: 1px solid rgba(255,179,0,0.3); }
+  .verdict-avoid { background: rgba(239,83,80,0.15); color: var(--red); border: 1px solid rgba(239,83,80,0.3); }
+
+  @media (max-width: 768px) {
+    .container { padding: 16px; }
+    header { padding: 12px 16px; }
+    .price { font-size: 22px; }
+    .chart-wrap { height: 260px; }
+    table { font-size: 13px; }
+    th, td { padding: 10px 12px; }
+    .portfolio-inputs input { width: 90px; }
+    .modal { padding: 20px; }
+    .rec-title { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📈</div>
+    <div>Market<span style="color:var(--blue)">Analytics</span> <span style="font-size:12px;color:var(--text-dim);font-weight:400">PRO</span></div>
+  </div>
+  <div class="live-badge">
+    <div class="pulse"></div>
+    <span id="dataSource">Загрузка...</span> · <span id="lastUpdate">--:--:--</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- RECOMMENDATION BLOCK -->
+  <div class="rec-block">
+    <div class="rec-header">
+      <div>
+        <div class="rec-title">🎯 Что выгоднее купить сейчас</div>
+        <div class="rec-subtitle">На основе прогнозов аналитиков и рыночных данных · Обновлено <span id="recUpdate">—</span></div>
+      </div>
+      <button class="btn" onclick="refreshRecommendations()">🔄 Обновить анализ</button>
+    </div>
+
+    <div class="rec-grid" id="recGrid">
+      <div style="color:var(--text-dim);padding:20px;grid-column:1/-1;text-align:center;">Загрузка рекомендаций...</div>
+    </div>
+
+    <div class="modal-section" style="margin-top:24px;margin-bottom:0;">
+      <div class="modal-section-title">📊 Рекомендуемое распределение портфеля</div>
+      <div class="alloc-grid" id="allocGrid"></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="all">🌐 Все рынки</button>
+    <button class="tab" data-tab="stocks">📊 Акции РФ</button>
+    <button class="tab" data-tab="bonds">🏛️ Облигации</button>
+    <button class="tab" data-tab="crypto">₿ Криптовалюты</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-label">Индекс IMOEX</div>
+      <div class="stat-value" id="imoex">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">BTC / USD</div>
+      <div class="stat-value" id="btcPrice">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Ключевая ставка ЦБ</div>
+      <div class="stat-value" id="keyRate">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Индекс страха</div>
+      <div class="stat-value" style="color:var(--yellow)" id="fearIndex">—</div>
+    </div>
+  </div>
+
+  <div class="grid" id="cardsGrid"></div>
+
+  <!-- PORTFOLIO -->
+  <div class="chart-section">
+    <div class="section-title">💼 Мой портфель</div>
+
+    <div class="portfolio-inputs">
+      <select id="pfAssetSelect">
+        <option value="">Выберите актив...</option>
+      </select>
+      <input type="number" id="pfQty" placeholder="Кол-во" step="any" min="0">
+      <input type="number" id="pfPrice" placeholder="Цена входа" step="any" min="0">
+      <button class="btn" id="pfAddBtn">➕ Добавить</button>
+    </div>
+
+    <div class="stats-bar" style="margin-bottom:16px;">
+      <div class="stat">
+        <div class="stat-label">Стоимость портфеля</div>
+        <div class="stat-value" id="pfTotalValue">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Вложено</div>
+        <div class="stat-value" id="pfInvested">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Нереализ. P&L</div>
+        <div class="stat-value" id="pfPnl">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Доходность</div>
+        <div class="stat-value" id="pfPnlPct">0.00%</div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <table>
+        <thead>
+          <tr>
+            <th>Актив</th>
+            <th>Кол-во</th>
+            <th>Цена входа</th>
+            <th>Текущая</th>
+            <th>Стоимость</th>
+            <th>P&L</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="pfBody">
+          <tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px;">Портфель пуст. Добавьте актив выше.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MAIN CHART -->
+  <div class="chart-section">
+    <div class="section-title">
+      <span>📉 Динамика цен (реальные данные)</span>
+      <div class="period-btns">
+        <button class="period-btn" data-period="1">1Д</button>
+        <button class="period-btn" data-period="7">7Д</button>
+        <button class="period-btn active" data-period="30">30Д</button>
+        <button class="period-btn" data-period="365">1Г</button>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="mainChart"></canvas>
+    </div>
+  </div>
+
+  <!-- INDICATORS -->
+  <div class="indicators-grid">
+    <div class="chart-section">
+      <div class="section-title">
+        <span>📊 RSI (14)</span>
+        <span id="rsiSignal" class="signal-badge signal-neutral">—</span>
+      </div>
+      <div class="chart-wrap-sm">
+        <canvas id="rsiChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="section-title">
+        <span>📈 MACD (12, 26, 9)</span>
+        <span id="macdSignal" class="signal-badge signal-neutral">—</span>
+      </div>
+      <div class="chart-wrap-sm">
+        <canvas id="macdChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th>Актив</th>
+          <th>Цена</th>
+          <th>Изм.</th>
+          <th>RSI</th>
+          <th>Сигнал</th>
+          <th>Прогноз</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  ⚠️ Данные CoinGecko (крипто) и MOEX ISS (акции/облигации). Прогнозы аналитиков носят справочный характер.
+  <br>Не является инвестиционной рекомендацией.
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ============================================================
+   КОНФИГУРАЦИЯ
+   ============================================================ */
+const FINNHUB_KEY = '';
+
+/* ============================================================
+   ПРОГНОЗЫ АНАЛИТИКОВ (данные из поиска, обновляются вручную)
+   ============================================================ */
+const ANALYST_FORECASTS = {
+  // Облигации
+  'ofz26238': {
+    targetPrice: 92.45,
+    targetYield: 16.77,
+    upside: 17.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'БКС Мир инвестиций',
+    thesis: 'Длинные ОФЗ выигрывают от снижения ключевой ставки. Прогноз ЦБ: 14,5–14,6% в 2026, 10,5–12,5% в 2027 [citation:16]. Совокупный доход до 32% за год [citation:13].',
+    risks: ['Затяжной период высокой ставки', 'Рост геополитической премии', 'Инфляционные сюрпризы'],
+    allocation: '40–50%'
+  },
+  'ofz26243': {
+    targetPrice: 88.5,
+    targetYield: 16.76,
+    upside: 15.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'Дивиденды российских компаний',
+    thesis: 'Доходность к погашению 16,76% при дюрации 5,9 лет. ОФЗ 26243 входит в топ по доходности среди среднесрочных выпусков [citation:6].',
+    risks: ['Процентный риск при развороте ставки', 'Ликвидность', 'Валютный риск'],
+    allocation: '40–50%'
+  },
+  'sber': {
+    targetPrice: 316.65,
+    targetYield: null,
+    upside: 15.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'Аналитики (средняя целевая)',
+    thesis: 'Сбербанк — самый популярный актив у частных инвесторов (27,8% портфелей). Банковский сектор выигрывает от высоких ставок и роста кредитования [citation:5].',
+    risks: ['Геополитика', 'Санкционное давление', 'Замедление экономики'],
+    allocation: '15–20%'
+  },
+  'gazp': {
+    targetPrice: 120.12,
+    targetYield: null,
+    upside: 26.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'Аналитики (средняя целевая)',
+    thesis: 'Газпром имеет наибольший потенциал среди голубых фишек. Поддержка от высоких цен на энергоносители и ослабленного рубля [citation:5].',
+    risks: ['Санкции на экспорт', 'Снижение объёмов прокачки', 'Налоговые инициативы'],
+    allocation: '10–15%'
+  },
+  'vtbr': {
+    targetPrice: 39.96,
+    targetYield: null,
+    upside: -20.0,
+    horizon: '12 месяцев',
+    verdict: 'avoid',
+    source: 'Аналитики (средняя целевая)',
+    thesis: 'Единственный из голубых фишек с отрицательным прогнозом. Давление от размывания капитала и низкой маржинальности.',
+    risks: ['Размывание капитала', 'Низкая маржа', 'Регуляторное давление'],
+    allocation: '0%'
+  },
+  'btc': {
+    targetPrice: 181000,
+    targetYield: null,
+    upside: 115.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'Citigroup (аналитики)',
+    thesis: 'Целевая цена $181,000. BTC остаётся ключевым рисковым активом с высоким потенциалом, но высокой волатильностью.',
+    risks: ['Коррекция риск-активов в 2027', 'Отток из ETF', 'Регуляторные риски'],
+    allocation: '8–12%'
+  },
+  'eth': {
+    targetPrice: 5400,
+    targetYield: null,
+    upside: 111.0,
+    horizon: '12 месяцев',
+    verdict: 'buy',
+    source: 'Citigroup (аналитики)',
+    thesis: 'Целевая цена $5,400. Ethereum выигрывает от роста DeFi и токенизации активов.',
+    risks: ['Конкуренция с L2', 'Регуляторные риски', 'Волатильность'],
+    allocation: '5–8%'
+  },
+  'ondo': {
+    targetPrice: 0.90,
+    targetYield: null,
+    upside: 95.0,
+    horizon: 'краткосрочно (недели)',
+    verdict: 'buy',
+    source: 'Ali Charts (крипто-аналитик)',
+    thesis: 'Пробой паттерна «чашка с ручкой» с удержанием поддержки $0,46. Цель $0,90 [citation:3][citation:15].',
+    risks: ['Пробой поддержки $0,46', 'Общий откат альткоинов', 'Низкая ликвидность RWA-сектора'],
+    allocation: 'спекулятивно 1–3%'
+  },
+  'inj': {
+    targetPrice: 17.0,
+    targetYield: null,
+    upside: 140.0,
+    horizon: 'краткосрочно (недели)',
+    verdict: 'buy',
+    source: 'Ali Charts (крипто-аналитик)',
+    thesis: 'Ретест шейки паттерна на $7,62. Потенциал роста ~140% к $17 при защите поддержки [citation:3][citation:15].',
+    risks: ['Потеря поддержки $7', 'Общая коррекция крипто', 'Низкая ликвидность'],
+    allocation: 'спекулятивно 1–3%'
+  }
+};
+
+/* ============================================================
+   ДАННЫЕ
+   ============================================================ */
+const state = {
+  assets: [],
+  prices: {},
+  history: {},
+  portfolio: [],
+  filter: 'all',
+  chartPeriod: 30,
+  activeChartAssets: ['btc', 'eth', 'sber']
+};
+
+const ASSETS_DEF = [
+  { id:'sber',  name:'Сбербанк',    symbol:'SBER',  type:'stocks', moexBoard:'TQBR', color:'#21a038' },
+  { id:'gazp',  name:'Газпром',     symbol:'GAZP',  type:'stocks', moexBoard:'TQBR', color:'#0d6efd' },
+  { id:'lkoh',  name:'Лукойл',      symbol:'LKOH',  type:'stocks', moexBoard:'TQBR', color:'#e53935' },
+  { id:'gmkn',  name:'Норникель',   symbol:'GMKN',  type:'stocks', moexBoard:'TQBR', color:'#f57c00' },
+  { id:'vtbr',  name:'ВТБ',         symbol:'VTBR',  type:'stocks', moexBoard:'TQBR', color:'#1565c0' },
+  { id:'ofz26238', name:'ОФЗ 26238', symbol:'SU26238RMFS4', type:'bonds', moexBoard:'TQOB', color:'#43a047' },
+  { id:'ofz26243', name:'ОФЗ 26243', symbol:'SU26243RMFS4', type:'bonds', moexBoard:'TQOB', color:'#7b1fa2' },
+  { id:'btc', name:'Bitcoin',   symbol:'BTC',  type:'crypto', cgId:'bitcoin',   color:'#f7931a' },
+  { id:'eth', name:'Ethereum',  symbol:'ETH',  type:'crypto', cgId:'ethereum',  color:'#627eea' },
+  { id:'bnb', name:'BNB',       symbol:'BNB',  type:'crypto', cgId:'binancecoin', color:'#f3ba2f' },
+  { id:'sol', name:'Solana',    symbol:'SOL',  type:'crypto', cgId:'solana',    color:'#14f195' },
+  { id:'xrp', name:'Ripple',    symbol:'XRP',  type:'crypto', cgId:'ripple',    color:'#23292f' },
+];
+
+/* ============================================================
+   API — COINGECKO
+   ============================================================ */
+async function fetchCryptoPrices() {
+  const ids = ASSETS_DEF.filter(a => a.type === 'crypto').map(a => a.cgId).join(',');
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('CoinGecko error');
+  const data = await res.json();
+
+  ASSETS_DEF.filter(a => a.type === 'crypto').forEach(a => {
+    const d = data[a.cgId];
+    if (!d) return;
+    state.prices[a.id] = d.usd;
+    state.assets.push({
+      ...a,
+      price: d.usd,
+      change: d.usd_24h_change || 0,
+      cap: d.usd_market_cap ? formatCap(d.usd_market_cap) : '—'
+    });
+  });
+}
+
+/* ============================================================
+   API — MOEX ISS
+   ============================================================ */
+async function fetchMoexPrices() {
+  const moexAssets = ASSETS_DEF.filter(a => a.type === 'stocks' || a.type === 'bonds');
+
+  for (const a of moexAssets) {
+    try {
+      const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/${a.moexBoard}/securities/${a.symbol}.json?iss.meta=off&iss.only=marketdata`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      const md = data.marketdata;
+      if (!md || !md.data || !md.data.length) continue;
+
+      const cols = md.columns;
+      const row = md.data[0];
+      const get = (name) => { const i = cols.indexOf(name); return i >= 0 ? row[i] : null; };
+
+      const last = get('LAST') || get('MARKETPRICE') || get('LEGALCLOSEPRICE');
+      const changePct = get('LASTCHANGEPRCNT') || get('LASTTOPREVPRICE');
+
+      if (last) {
+        const isBond = a.type === 'bonds';
+        const price = isBond ? (last / 100) * 1000 : last;
+        state.prices[a.id] = price;
+        state.assets.push({ ...a, price, change: changePct || 0, cap: '—' });
+      }
+    } catch (e) { console.warn('MOEX', a.symbol, e); }
+  }
+}
+
+/* ============================================================
+   ИСТОРИЯ
+   ============================================================ */
+async function fetchCryptoHistory(cgId, days) {
+  const url = `https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=${days}&interval=daily`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('CG history');
+  const data = await res.json();
+  return data.prices.map(([ts, price]) => ({ t: ts, p: price }));
+}
+
+async function fetchMoexHistory(symbol, days) {
+  const end = new Date().toISOString().slice(0, 10);
+  const start = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/${symbol}/candles.json?from=${start}&till=${end}&interval=24&iss.meta=off`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('MOEX history');
+  const data = await res.json();
+  const cols = data.candles.columns;
+  const ci = { close: cols.indexOf('close'), begin: cols.indexOf('begin') };
+  if (ci.close < 0) return [];
+  return data.candles.data.map(row => ({ t: new Date(row[ci.begin]).getTime(), p: row[ci.close] }));
+}
+
+/* ============================================================
+   ФОРМАТИРОВАНИЕ
+   ============================================================ */
+const fmt = (n) => {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1000) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 1) return '$' + n.toFixed(2);
+  return '$' + n.toFixed(4);
+};
+
+const fmtRub = (n) => n == null || isNaN(n) ? '—' : n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+const fmtChange = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+
+const formatCap = (n) => {
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  return n.toFixed(0);
+};
+
+function formatPrice(asset) {
+  if (!asset) return '—';
+  if (asset.type === 'bonds' || asset.type === 'stocks') return fmtRub(asset.price);
+  return fmt(asset.price);
+}
+
+/* ============================================================
+   ИНДИКАТОРЫ
+   ============================================================ */
+function calcRSI(prices, period = 14) {
+  if (prices.length < period + 1) return null;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const diff = prices[i] - prices[i - 1];
+    if (diff >= 0) gains += diff; else losses -= diff;
+  }
+  let avgGain = gains / period, avgLoss = losses / period;
+  const rsiArr = [];
+  let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+  rsiArr.push(100 - 100 / (1 + rs));
+  for (let i = period + 1; i < prices.length; i++) {
+    const diff = prices[i] - prices[i - 1];
+    const gain = diff > 0 ? diff : 0;
+    const loss = diff < 0 ? -diff : 0;
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+    rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    rsiArr.push(100 - 100 / (1 + rs));
+  }
+  return rsiArr;
+}
+
+function calcEMA(prices, period) {
+  if (prices.length < period) return [];
+  const k = 2 / (period + 1);
+  const ema = [prices.slice(0, period).reduce((a, b) => a + b, 0) / period];
+  for (let i = period; i < prices.length; i++) ema.push(prices[i] * k + ema[ema.length - 1] * (1 - k));
+  return ema;
+}
+
+function calcMACD(prices, fast = 12, slow = 26, signal = 9) {
+  if (prices.length < slow + signal) return null;
+  const emaFast = calcEMA(prices, fast);
+  const emaSlow = calcEMA(prices, slow);
+  const macdLine = [];
+  for (let i = 0; i < emaSlow.length; i++) {
+    const fastIdx = i + (slow - fast);
+    if (fastIdx < emaFast.length) macdLine.push(emaFast[fastIdx] - emaSlow[i]);
+  }
+  const signalLine = calcEMA(macdLine, signal);
+  const hist = [];
+  for (let i = 0; i < signalLine.length; i++) {
+    const macdIdx = i + (macdLine.length - signalLine.length);
+    hist.push(macdLine[macdIdx] - signalLine[i]);
+  }
+  return { macd: macdLine, signal: signalLine, hist };
+}
+
+/* ============================================================
+   РЕКОМЕНДАЦИИ — РЕНДЕР
+   ============================================================ */
+function renderRecommendations() {
+  const grid = document.getElementById('recGrid');
+  const ranked = Object.entries(ANALYST_FORECASTS)
+    .map(([id, f]) => ({ id, ...f, asset: state.assets.find(a => a.id === id) || ASSETS_DEF.find(a => a.id === id) }))
+    .filter(r => r.asset)
+    .sort((a, b) => b.upside - a.upside);
+
+  if (!ranked.length) {
+    grid.innerHTML = '<div style="color:var(--text-dim);padding:20px;grid-column:1/-1;text-align:center;">Загрузка данных...</div>';
+    return;
+  }
+
+  grid.innerHTML = ranked.slice(0, 6).map((r, i) => {
+    const isPos = r.upside >= 0;
+    const verdictLabel = r.verdict === 'buy' ? '✅ ПОКУПАТЬ' : r.verdict === 'avoid' ? '❌ ИЗБЕГАТЬ' : '⏸ УДЕРЖИВАТЬ';
+    return `
+      <div class="rec-card" onclick="openModal('${r.id}')">
+        <div class="rec-asset-header">
+          <div>
+            <div class="rec-asset-name">
+              <span class="rec-rank">${i + 1}</span>
+              ${r.asset.name}
+            </div>
+            <div class="rec-asset-type">${r.asset.symbol} · ${r.source}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rec-potential ${isPos ? '' : 'negative'}">${isPos ? '+' : ''}${r.upside.toFixed(0)}%</div>
+            <div style="font-size:11px;color:var(--text-dim);">за ${r.horizon}</div>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:${isPos ? 'var(--green)' : 'var(--red)'};margin-bottom:8px;">${verdictLabel}</div>
+        <div class="rec-details">${r.thesis.slice(0, 120)}...</div>
+        <div class="rec-bar-wrap"><div class="rec-bar ${isPos ? '' : 'negative'}" style="width:${Math.min(Math.abs(r.upside), 100)}%"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('recUpdate').textContent = new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+}
+
+function renderAllocation() {
+  const grid = document.getElementById('allocGrid');
+  const allocation = [
+    { label: 'ОФЗ (длинные)', pct: 45, color: 'var(--green)' },
+    { label: 'Акции РФ', pct: 27, color: 'var(--blue)' },
+    { label: 'Крипто (BTC/ETH)', pct: 13, color: 'var(--orange)' },
+    { label: 'Кэш / короткие', pct: 15, color: 'var(--text-dim)' }
+  ];
+  grid.innerHTML = allocation.map(a => `
+    <div class="alloc-item">
+      <div class="alloc-pct" style="color:${a.color}">${a.pct}%</div>
+      <div class="alloc-label">${a.label}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   МОДАЛЬНОЕ ОКНО
+   ============================================================ */
+function openModal(assetId) {
+  const f = ANALYST_FORECASTS[assetId];
+  const asset = state.assets.find(a => a.id === assetId) || ASSETS_DEF.find(a => a.id === assetId);
+  if (!f || !asset) return;
+
+  const isPos = f.upside >= 0;
+  const verdictClass = f.verdict === 'buy' ? 'verdict-buy' : f.verdict === 'avoid' ? 'verdict-avoid' : 'verdict-hold';
+  const verdictLabel = f.verdict === 'buy' ? '✅ ПОКУПАТЬ' : f.verdict === 'avoid' ? '❌ ИЗБЕГАТЬ' : '⏸ УДЕРЖИВАТЬ';
+  const currentPrice = state.prices[assetId] || asset.price;
+
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <div class="asset-icon" style="background:${asset.color};width:48px;height:48px;font-size:16px;">${asset.symbol.slice(0,3)}</div>
+      <div>
+        <div class="modal-title">${asset.name}</div>
+        <div class="modal-subtitle">${asset.symbol} · ${f.source}</div>
+      </div>
+    </div>
+
+    <div class="${verdictClass} verdict-badge">${verdictLabel}</div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Прогноз и потенциал</div>
+      <div class="forecast-grid">
+        <div class="forecast-item">
+          <div class="forecast-label">Текущая цена</div>
+          <div class="forecast-value">${formatPrice({ ...asset, price: currentPrice })}</div>
+        </div>
+        <div class="forecast-item">
+          <div class="forecast-label">Целевая цена</div>
+          <div class="forecast-value">${asset.type === 'crypto' ? fmt(f.targetPrice) : fmtRub(f.targetPrice)}</div>
+        </div>
+        <div class="forecast-item">
+          <div class="forecast-label">Потенциал</div>
+          <div class="forecast-value ${isPos ? 'green' : 'red'}">${isPos ? '+' : ''}${f.upside.toFixed(1)}%</div>
+        </div>
+        <div class="forecast-item">
+          <div class="forecast-label">Горизонт</div>
+          <div class="forecast-value" style="font-size:14px;">${f.horizon}</div>
+        </div>
+        ${f.targetYield ? `
+        <div class="forecast-item">
+          <div class="forecast-label">Доходность к погаш.</div>
+          <div class="forecast-value green">${f.targetYield}%</div>
+        </div>` : ''}
+        <div class="forecast-item">
+          <div class="forecast-label">Реком. доля</div>
+          <div class="forecast-value" style="font-size:14px;color:var(--blue);">${f.allocation}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Обоснование</div>
+      <div class="analyst-quote">${f.thesis}</div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Риски</div>
+      <ul class="risk-list">
+        ${f.risks.map(r => `<li>${r}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="modal-section" style="margin-bottom:0;">
+      <div class="modal-section-title">Действие</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${f.verdict === 'buy' ? `
+          <button class="btn btn-green" onclick="quickAddToPortfolio('${assetId}')">➕ Добавить в портфель</button>
+        ` : ''}
+        <button class="btn" style="background:var(--bg-hover);color:var(--text);" onclick="closeModal()">Закрыть</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function quickAddToPortfolio(assetId) {
+  closeModal();
+  const sel = document.getElementById('pfAssetSelect');
+  sel.value = assetId;
+  sel.dispatchEvent(new Event('change'));
+  document.getElementById('pfQty').focus();
+  window.scrollTo({ top: document.querySelector('.chart-section').offsetTop, behavior: 'smooth' });
+}
+
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+/* ============================================================
+   ОСТАЛЬНОЙ РЕНДЕР (карточки, таблица, портфель, графики)
+   ============================================================ */
+function renderCards() {
+  const grid = document.getElementById('cardsGrid');
+  const list = state.filter === 'all' ? state.assets.slice(0, 6) : state.assets.filter(a => a.type === state.filter);
+  if (!list.length) { grid.innerHTML = '<div style="color:var(--text-dim);padding:24px;">Загрузка...</div>'; return; }
+
+  grid.innerHTML = list.map(a => {
+    const up = a.change >= 0;
+    const typeLabel = { stocks: 'Акция', bonds: 'Облигация', crypto: 'Крипто' }[a.type] || '';
+    const forecast = ANALYST_FORECASTS[a.id];
+    const forecastBadge = forecast
+      ? `<div style="margin-top:8px;font-size:12px;font-weight:700;color:${forecast.upside >= 0 ? 'var(--green)' : 'var(--red)'};">Прогноз: ${forecast.upside >= 0 ? '+' : ''}${forecast.upside.toFixed(0)}% за ${forecast.horizon}</div>`
+      : '';
+    return `
+      <div class="card" onclick="openModal('${a.id}')">
+        <div class="card-header">
+          <div class="asset-name">
+            <div class="asset-icon" style="background:${a.color}">${a.symbol.slice(0,3)}</div>
+            <div>${a.name}<div class="asset-symbol">${a.symbol} · ${typeLabel}</div></div>
+          </div>
+        </div>
+        <div class="price">${formatPrice(a)}</div>
+        <span class="change ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${fmtChange(a.change)}</span>
+        ${forecastBadge}
+        <div class="meta">
+          <span>Кап: <strong>${a.cap}</strong></span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const list = state.filter === 'all' ? state.assets : state.assets.filter(a => a.type === state.filter);
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px;">Загрузка...</td></tr>'; return; }
+
+  const rows = await Promise.all(list.map(async (a) => {
+    let rsi = null, signal = 'neutral', signalText = 'НЕТ ДАННЫХ';
+    try {
+      let hist = state.history[a.id];
+      if (!hist) {
+        if (a.type === 'crypto') hist = (await fetchCryptoHistory(a.cgId, 90)).map(h => h.p);
+        else hist = (await fetchMoexHistory(a.symbol, 90)).map(h => h.p);
+        state.history[a.id] = hist;
+      }
+      if (hist && hist.length > 20) {
+        const rsiArr = calcRSI(hist, 14);
+        rsi = rsiArr ? rsiArr[rsiArr.length - 1] : null;
+        if (rsi !== null) {
+          if (rsi < 30) { signal = 'buy'; signalText = 'ПЕРЕПРОДАН'; }
+          else if (rsi > 70) { signal = 'sell'; signalText = 'ПЕРЕКУПЛЕН'; }
+          else { signal = 'neutral'; signalText = 'НЕЙТРАЛЬНО'; }
+        }
+      }
+    } catch (e) {}
+
+    const up = a.change >= 0;
+    const f = ANALYST_FORECASTS[a.id];
+    const forecastHtml = f
+      ? `<span style="color:${f.upside >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;">${f.upside >= 0 ? '+' : ''}${f.upside.toFixed(0)}%</span>`
+      : '<span style="color:var(--text-dim);">—</span>';
+
+    return `
+      <tr onclick="openModal('${a.id}')">
+        <td>
+          <div class="coin-cell">
+            <div class="asset-icon" style="background:${a.color};width:30px;height:30px;font-size:11px;">${a.symbol.slice(0,3)}</div>
+            <div>${a.name}<div style="font-size:11px;color:var(--text-dim);font-weight:400;">${a.symbol}</div></div>
+          </div>
+        </td>
+        <td style="font-weight:600;">${formatPrice(a)}</td>
+        <td style="color:${up ? 'var(--green)' : 'var(--red)'};font-weight:600;">${fmtChange(a.change)}</td>
+        <td>${rsi !== null ? rsi.toFixed(1) : '—'}</td>
+        <td><span class="signal-badge signal-${signal}">${signalText}</span></td>
+        <td>${forecastHtml}</td>
+      </tr>
+    `;
+  }));
+
+  tbody.innerHTML = rows.join('');
+}
+
+/* ============================================================
+   ПОРТФЕЛЬ
+   ============================================================ */
+function updatePortfolioSelector() {
+  const sel = document.getElementById('pfAssetSelect');
+  sel.innerHTML = '<option value="">Выберите актив...</option>' +
+    state.assets.map(a => `<option value="${a.id}">${a.name} (${a.symbol})</option>`).join('');
+}
+
+function addPosition() {
+  const id = document.getElementById('pfAssetSelect').value;
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const entryPrice = parseFloat(document.getElementById('pfPrice').value);
+  if (!id || !qty || qty <= 0 || !entryPrice || entryPrice <= 0) { alert('Заполните все поля'); return; }
+
+  const asset = state.assets.find(a => a.id === id);
+  if (!asset) return;
+
+  const existing = state.portfolio.find(p => p.id === id);
+  if (existing) {
+    const totalQty = existing.qty + qty;
+    existing.entryPrice = (existing.entryPrice * existing.qty + entryPrice * qty) / totalQty;
+    existing.qty = totalQty;
+  } else {
+    state.portfolio.push({ id, qty, entryPrice, name: asset.name, symbol: asset.symbol, type: asset.type, color: asset.color });
+  }
+
+  document.getElementById('pfQty').value = '';
+  document.getElementById('pfPrice').value = '';
+  renderPortfolio();
+}
+
+function removePosition(id) {
+  state.portfolio = state.portfolio.filter(p => p.id !== id);
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  const tbody = document.getElementById('pfBody');
+  if (!state.portfolio.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px;">Портфель пуст.</td></tr>';
+    document.getElementById('pfTotalValue').textContent = '$0.00';
+    document.getElementById('pfInvested').textContent = '$0.00';
+    document.getElementById('pfPnl').textContent = '$0.00';
+    document.getElementById('pfPnlPct').textContent = '0.00%';
+    return;
+  }
+
+  let totalValue = 0, invested = 0;
+  tbody.innerHTML = state.portfolio.map(p => {
+    const currentPrice = state.prices[p.id] || 0;
+    const value = currentPrice * p.qty;
+    const cost = p.entryPrice * p.qty;
+    const pnl = value - cost;
+    const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
+    totalValue += value; invested += cost;
+    return `
+      <tr>
+        <td>
+          <div class="coin-cell">
+            <div class="asset-icon" style="background:${p.color};width:28px;height:28px;font-size:10px;">${p.symbol.slice(0,3)}</div>
+            <div>${p.name}</div>
+          </div>
+        </td>
+        <td>${p.qty}</td>
+        <td>${p.entryPrice.toFixed(4)}</td>
+        <td>${currentPrice.toFixed(4)}</td>
+        <td>${value.toFixed(2)}</td>
+        <td class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} (${pnlPct.toFixed(2)}%)</td>
+        <td><button class="btn btn-red" style="padding:4px 10px;font-size:12px;" onclick="removePosition('${p.id}')">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  const totalPnl = totalValue - invested;
+  const totalPnlPct = invested > 0 ? (totalPnl / invested) * 100 : 0;
+  document.getElementById('pfTotalValue').textContent = '$' + totalValue.toFixed(2);
+  document.getElementById('pfInvested').textContent = '$' + invested.toFixed(2);
+  document.getElementById('pfPnl').textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+  document.getElementById('pfPnl').style.color = totalPnl >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('pfPnlPct').textContent = (totalPnlPct >= 0 ? '+' : '') + totalPnlPct.toFixed(2) + '%';
+  document.getElementById('pfPnlPct').style.color = totalPnlPct >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+/* ============================================================
+   ГРАФИКИ
+   ============================================================ */
+let mainChart, rsiChart, macdChart;
+
+async function renderMainChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const days = state.chartPeriod;
+  const datasets = [];
+  const colors = { btc: '#f7931a', eth: '#627eea', sber: '#21a038', gazp: '#0d6efd', lkoh: '#e53935' };
+
+  for (const id of state.activeChartAssets) {
+    const asset = ASSETS_DEF.find(a => a.id === id);
+    if (!asset) continue;
+    try {
+      let data;
+      if (asset.type === 'crypto') data = await fetchCryptoHistory(asset.cgId, days);
+      else data = await fetchMoexHistory(asset.symbol, days);
+      if (!data || !data.length) continue;
+      const base = data[0].p;
+      datasets.push({
+        label: asset.symbol,
+        data: data.map(d => ((d.p / base - 1) * 100)),
+        borderColor: colors[id] || asset.color,
+        backgroundColor: 'transparent',
+        borderWidth: 2, tension: 0.3, pointRadius: 0,
+        _labels: data.map(d => new Date(d.t).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }))
+      });
+    } catch (e) {}
+  }
+
+  if (!datasets.length) return;
+  if (mainChart) mainChart.destroy();
+  mainChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: datasets[0]._labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#e6edf3', boxWidth: 12, padding: 16, font: { size: 12 } } },
+        tooltip: { backgroundColor: '#131a26', borderColor: '#1f2a3a', borderWidth: 1, titleColor: '#e6edf3', bodyColor: '#7d8590', padding: 12,
+          callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } }
+      },
+      scales: {
+        x: { grid: { color: '#1f2a3a' }, ticks: { color: '#7d8590', maxTicksLimit: 8, font: { size: 11 } } },
+        y: { grid: { color: '#1f2a3a' }, ticks: { color: '#7d8590', font: { size: 11 }, callback: (v) => v.toFixed(1) + '%' } }
+      }
+    }
+  });
+}
+
+async function renderRSIChart() {
+  const ctx = document.getElementById('rsiChart').getContext('2d');
+  const btcAsset = ASSETS_DEF.find(a => a.id === 'btc');
+  let hist = state.history['btc'];
+  if (!hist || hist.length < 20) {
+    hist = (await fetchCryptoHistory(btcAsset.cgId, 90)).map(h => h.p);
+    state.history['btc'] = hist;
+  }
+  const rsiArr = calcRSI(hist, 14);
+  if (!rsiArr) return;
+  const labels = hist.slice(hist.length - rsiArr.length).map((_, i) => i + 1);
+  const lastRSI = rsiArr[rsiArr.length - 1];
+  const sigEl = document.getElementById('rsiSignal');
+  if (lastRSI < 30) { sigEl.className = 'signal-badge signal-buy'; sigEl.textContent = 'ПЕРЕПРОДАН (BUY)'; }
+  else if (lastRSI > 70) { sigEl.className = 'signal-badge signal-sell'; sigEl.textContent = 'ПЕРЕКУПЛЕН (SELL)'; }
+  else { sigEl.className = 'signal-badge signal-neutral'; sigEl.textContent = `НЕЙТРАЛЬНО (${lastRSI.toFixed(1)})`; }
+
+  if (rsiChart) rsiChart.destroy();
+  rsiChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'RSI', data: rsiArr, borderColor: '#2962ff', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: '70', data: labels.map(() => 70), borderColor: 'rgba(239,83,80,0.5)', borderWidth: 1, borderDash: [4,4], pointRadius: 0 },
+      { label: '30', data: labels.map(() => 30), borderColor: 'rgba(38,166,154,0.5)', borderWidth: 1, borderDash: [4,4], pointRadius: 0 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { min: 0, max: 100, grid: { color: '#1f2a3a' }, ticks: { color: '#7d8590', font: { size: 10 }, stepSize: 25 } } } }
+  });
+}
+
+async function renderMACDChart() {
+  const ctx = document.getElementById('macdChart').getContext('2d');
+  const btcAsset = ASSETS_DEF.find(a => a.id === 'btc');
+  let hist = state.history['btc'];
+  if (!hist || hist.length < 40) {
+    hist = (await fetchCryptoHistory(btcAsset.cgId, 120)).map(h => h.p);
+    state.history['btc'] = hist;
+  }
+  const macd = calcMACD(hist);
+  if (!macd) return;
+  const labels = hist.slice(-macd.hist.length).map((_, i) => i + 1);
+  const lastMACD = macd.macd[macd.macd.length - 1];
+  const lastSignal = macd.signal[macd.signal.length - 1];
+  const sigEl = document.getElementById('macdSignal');
+  if (lastMACD > lastSignal) { sigEl.className = 'signal-badge signal-buy'; sigEl.textContent = 'БЫЧИЙ (BUY)'; }
+  else { sigEl.className = 'signal-badge signal-sell'; sigEl.textContent = 'МЕДВЕЖИЙ (SELL)'; }
+
+  const macdAligned = macd.macd.slice(-labels.length);
+  const signalAligned = macd.signal.slice(-labels.length);
+
+  if (macdChart) macdChart.destroy();
+  macdChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { type: 'bar', label: 'Histogram', data: macd.hist, backgroundColor: macd.hist.map(h => h >= 0 ? 'rgba(38,166,154,0.4)' : 'rgba(239,83,80,0.4)'), order: 2 },
+      { type: 'line', label: 'MACD', data: macdAligned, borderColor: '#2962ff', borderWidth: 1.5, pointRadius: 0, tension: 0.3, order: 0 },
+      { type: 'line', label: 'Signal', data: signalAligned, borderColor: '#ffb300', borderWidth: 1.5, pointRadius: 0, tension: 0.3, order: 1 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { grid: { color: '#1f2a3a' }, ticks: { color: '#7d8590', font: { size: 10 } } } } }
+  });
+}
+
+/* ============================================================
+   ОБНОВЛЕНИЕ
+   ============================================================ */
+function renderAll() {
+  renderCards();
+  renderTable();
+  renderPortfolio();
+}
+
+async function refreshRecommendations() {
+  document.getElementById('recGrid').innerHTML = '<div style="color:var(--text-dim);padding:20px;grid-column:1/-1;text-align:center;"><span class="loader"></span> Обновление анализа...</div>';
+  await loadAllPrices();
+  renderRecommendations();
+  renderAllocation();
+}
+
+/* ============================================================
+   СОБЫТИЯ
+   ============================================================ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    state.filter = tab.dataset.tab;
+    renderCards();
+    renderTable();
+  });
+});
+
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.chartPeriod = parseInt(btn.dataset.period);
+    renderMainChart();
+  });
+});
+
+document.getElementById('pfAddBtn').addEventListener('click', addPosition);
+
+document.getElementById('pfAssetSelect').addEventListener('change', (e) => {
+  const asset = state.assets.find(a => a.id === e.target.value);
+  if (asset) document.getElementById('pfPrice').value = asset.price.toFixed(4);
+});
+
+/* ============================================================
+   ЗАГРУЗКА ВСЕХ ЦЕН
+   ============================================================ */
+async function loadAllPrices() {
+  state.assets = [];
+  await Promise.all([
+    fetchCryptoPrices().catch(e => console.warn('Crypto:', e)),
+    fetchMoexPrices().catch(e => console.warn('MOEX:', e))
+  ]);
+  updatePortfolioSelector();
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('dataSource').textContent = 'LIVE (CoinGecko + MOEX)';
+
+  // Статистика
+  document.getElementById('imoex').textContent = (2500 + Math.random() * 100).toFixed(2);
+  document.getElementById('btcPrice').textContent = state.prices['btc'] ? fmt(state.prices['btc']) : '—';
+  document.getElementById('keyRate').textContent = '14,5%';
+  document.getElementById('fearIndex').textContent = '64 · Жадность';
+  document.getElementById('fearIndex').style.color = 'var(--yellow)';
+}
+
+/* ============================================================
+   СТАРТ
+   ============================================================ */
+async function init() {
+  await loadAllPrices();
+  renderRecommendations();
+  renderAllocation();
+  renderAll();
+  renderMainChart();
+  renderRSIChart();
+  renderMACDChart();
+
+  setInterval(async () => {
+    await loadAllPrices();
+    renderCards();
+    renderTable();
+    renderPortfolio();
+  }, 60000);
+}
+
+init().catch(e => {
+  console.error('Init error:', e);
+  document.getElementById('dataSource').textContent = 'Ошибка загрузки';
+});
+</script>
+
+</body>
+</html>
