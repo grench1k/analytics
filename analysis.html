@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e17">
+<title>Аналитика — Market Analytics</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">📈</div>
+    <div>Market<span style="color:var(--blue)">Analytics</span></div>
+  </a>
+  <div class="live-badge">
+    <div class="pulse"></div>
+    <span id="lastUpdate">--:--</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">🎯 Аналитика</div>
+    <div class="page-subtitle">Рекомендации и распределение портфеля</div>
+  </div>
+
+  <div class="rec-block">
+    <div class="rec-header">
+      <div>
+        <div class="rec-title">Что выгоднее купить сейчас</div>
+        <div class="rec-subtitle">Обновлено <span id="recUpdate">—</span></div>
+      </div>
+      <button class="btn" id="refreshBtn">🔄 Обновить</button>
+    </div>
+    <div class="rec-grid" id="recGrid"></div>
+    <div class="alloc-grid" id="allocGrid"></div>
+  </div>
+
+  <div class="content-page">
+    <h2>🎯 Итоговая рекомендация</h2>
+    <p>Сейчас наиболее привлекательны <strong>длинные ОФЗ</strong> — они выигрывают от цикла снижения ключевой ставки ЦБ РФ.</p>
+
+    <h3>📊 Целевое распределение</h3>
+    <ul>
+      <li><strong>40–50%</strong> — длинные ОФЗ</li>
+      <li><strong>25–30%</strong> — акции РФ (Газпром, Сбер)</li>
+      <li><strong>10–15%</strong> — крипто (BTC, ETH)</li>
+      <li><strong>10–15%</strong> — кэш / короткие ОФЗ</li>
+    </ul>
+
+    <h3>⚠️ Ключевые риски</h3>
+    <ul>
+      <li>2027 год — риск коррекции глобальных рынков</li>
+      <li>Крипто — высокая волатильность и зависимость от ETF</li>
+      <li>Акции РФ — геополитика и санкционное давление</li>
+    </ul>
+  </div>
+
+  <div class="indicators-grid">
+    <div class="chart-section">
+      <div class="section-title">
+        <span>📊 RSI (14) — BTC</span>
+        <span id="rsiSignal" class="signal-badge signal-neutral">—</span>
+      </div>
+      <div class="chart-wrap-sm"><canvas id="rsiChart"></canvas></div>
+    </div>
+
+    <div class="chart-section">
+      <div class="section-title">
+        <span>📈 MACD — BTC</span>
+        <span id="macdSignal" class="signal-badge signal-neutral">—</span>
+      </div>
+      <div class="chart-wrap-sm"><canvas id="macdChart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="nav-item-icon">🏠</span><span>Главная</span></a>
+  <a href="markets.html" class="nav-item"><span class="nav-item-icon">📊</span><span>Рынки</span></a>
+  <a href="analysis.html" class="nav-item"><span class="nav-item-icon">🎯</span><span>Аналитика</span></a>
+  <a href="portfolio.html" class="nav-item"><span class="nav-item-icon">💼</span><span>Портфель</span></a>
+  <a href="about.html" class="nav-item"><span class="nav-item-icon">ℹ️</span><span>О проекте</span></a>
+</nav>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
