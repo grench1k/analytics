@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e17">
+<title>О проекте — Market Analytics</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">📈</div>
+    <div>Market<span style="color:var(--blue)">Analytics</span></div>
+  </a>
+  <div class="live-badge">
+    <div class="pulse"></div>
+    <span>LIVE</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">ℹ️ О проекте</div>
+    <div class="page-subtitle">Что это и как работает</div>
+  </div>
+
+  <div class="content-page">
+    <h2>📊 Market Analytics</h2>
+    <p>Дашборд для мониторинга и анализа трёх классов активов: <strong>акций РФ</strong>, <strong>облигаций (ОФЗ)</strong> и <strong>криптовалют</strong>.</p>
+  </div>
+
+  <div class="content-page">
+    <h2>🔌 Источники данных</h2>
+    <ul>
+      <li><strong>CoinGecko API</strong> — цены и история криптовалют (BTC, ETH, BNB, SOL, XRP)</li>
+      <li><strong>MOEX ISS API</strong> — акции РФ (SBER, GAZP, LKOH, GMKN, VTBR) и ОФЗ</li>
+      <li><strong>Данные аналитиков</strong> — целевые цены и прогнозы из открытых источников</li>
+    </ul>
+    <p>MOEX без авторизации отдаёт данные с задержкой ~15 минут.</p>
+  </div>
+
+  <div class="content-page">
+    <h2>🎯 Функции</h2>
+    <h3>Рекомендации</h3>
+    <p>Топ активов по потенциалу роста с указанием целевых цен, горизонтов и рисков.</p>
+
+    <h3>Технические индикаторы</h3>
+    <ul>
+      <li><strong>RSI (14)</strong> — сигнал перекупленности/перепроданности</li>
+      <li><strong>MACD</strong> — бычий/медвежий тренд</li>
+    </ul>
+
+    <h3>Портфель</h3>
+    <p>Учёт позиций, расчёт P&L и доходности. Данные сохраняются в браузере (localStorage).</p>
+  </div>
+
+  <div class="content-page">
+    <h2>⚠️ Важно</h2>
+    <p>Всё, что вы видите на сайте — <strong>не является инвестиционной рекомендацией</strong>. Прогнозы аналитиков носят справочный характер. Перед принятием решений консультируйтесь с финансовым советником.</p>
+  </div>
+
+  <footer>
+    © 2026 Market Analytics · Демо-проект<br>
+    CoinGecko · MOEX ISS · Chart.js
+  </footer>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="nav-item-icon">🏠</span><span>Главная</span></a>
+  <a href="markets.html" class="nav-item"><span class="nav-item-icon">📊</span><span>Рынки</span></a>
+  <a href="analysis.html" class="nav-item"><span class="nav-item-icon">🎯</span><span>Аналитика</span></a>
+  <a href="portfolio.html" class="nav-item"><span class="nav-item-icon">💼</span><span>Портфель</span></a>
+  <a href="about.html" class="nav-item"><span class="nav-item-icon">ℹ️</span><span>О проекте</span></a>
+</nav>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
