@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e17">
+<title>Портфель — Market Analytics</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">📈</div>
+    <div>Market<span style="color:var(--blue)">Analytics</span></div>
+  </a>
+  <div class="live-badge">
+    <div class="pulse"></div>
+    <span id="lastUpdate">--:--</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">💼 Мой портфель</div>
+    <div class="page-subtitle">Позиции и расчёт P&L в реальном времени</div>
+  </div>
+
+  <div class="chart-section">
+    <div class="section-title">Добавить позицию</div>
+
+    <div class="portfolio-inputs">
+      <select id="pfAssetSelect">
+        <option value="">Выберите актив...</option>
+      </select>
+      <input type="number" id="pfQty" placeholder="Кол-во" step="any" min="0" inputmode="decimal">
+      <input type="number" id="pfPrice" placeholder="Цена входа" step="any" min="0" inputmode="decimal">
+      <button class="btn" id="pfAddBtn">➕ Добавить в портфель</button>
+    </div>
+
+    <div class="stats-bar" style="margin-bottom:0;">
+      <div class="stat">
+        <div class="stat-label">Стоимость</div>
+        <div class="stat-value" id="pfTotalValue" style="font-size:14px;">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Вложено</div>
+        <div class="stat-value" id="pfInvested" style="font-size:14px;">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">P&L</div>
+        <div class="stat-value" id="pfPnl" style="font-size:14px;">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Доходность</div>
+        <div class="stat-value" id="pfPnlPct" style="font-size:14px;">0.00%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th>Актив</th>
+          <th>Кол-во</th>
+          <th>Вход</th>
+          <th>Тек.</th>
+          <th class="hide-xs">Стоим.</th>
+          <th>P&L</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pfBody">
+        <tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:20px;font-size:12px;">Портфель пуст</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="nav-item-icon">🏠</span><span>Главная</span></a>
+  <a href="markets.html" class="nav-item"><span class="nav-item-icon">📊</span><span>Рынки</span></a>
+  <a href="analysis.html" class="nav-item"><span class="nav-item-icon">🎯</span><span>Аналитика</span></a>
+  <a href="portfolio.html" class="nav-item"><span class="nav-item-icon">💼</span><span>Портфель</span></a>
+  <a href="about.html" class="nav-item"><span class="nav-item-icon">ℹ️</span><span>О проекте</span></a>
+</nav>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
